@@ -9,7 +9,7 @@ organization := "org.reactivemongo"
 
 name := "reactivemongo-play-json"
 
-scalaVersion in ThisBuild := "2.12.3"
+scalaVersion in ThisBuild := "2.12.4"
 
 version ~= { ver =>
   sys.env.get("RELEASE_SUFFIX") match {
@@ -70,12 +70,6 @@ scalacOptions in (Compile, doc) ++= Seq(
   Opts.doc.title("ReactiveMongo Play JSON API") ++
   Opts.doc.version(Release.major.value)
 
-resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-
-resolvers += "Sonatype Staging" at "https://oss.sonatype.org/content/repositories/staging/"
-
-resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-
 resolvers ++= Seq(
   Resolver.sonatypeRepo("snapshots"),
   "Typesafe repository releases" at "http://repo.typesafe.com/typesafe/releases/")
@@ -101,7 +95,7 @@ unmanagedSourceDirectories in Compile += {
 
 libraryDependencies ++= Seq(
   "org.reactivemongo" %% "reactivemongo" % (version in ThisBuild).value % "provided" cross CrossVersion.binary,
-  "com.typesafe.play" %% "play-json" % playVer.value % "provided" cross CrossVersion.binary)
+  "com.typesafe.play" %% "play-json" % playVer.value % Provided cross CrossVersion.binary)
 
 // Test
 unmanagedSourceDirectories in Test += {
@@ -119,7 +113,7 @@ testOptions in Test += Tests.Cleanup(cl => {
 })
 
 libraryDependencies ++= Seq(
-  "org.specs2" %% "specs2-core" % "3.9.4",
+  "org.specs2" %% "specs2-core" % "4.0.1",
   "org.slf4j" % "slf4j-simple" % "1.7.13").map(_ % Test)
 
 // Travis CI
@@ -146,13 +140,13 @@ travisEnv in Test := { // test:travisEnv from SBT CLI
       if (/* time-compat exclusions: */
         flags.contains("PLAY_VERSION" -> playUpper)) {
         List(
-          "    - scala: 2.11.8",
+          "    - scala: 2.11.11",
           s"      env: ${integrationVars(flags)}"
         )
       } else if (/* time-compat exclusions: */
         flags.contains("PLAY_VERSION" -> playLower)) {
         List(
-          "    - scala: 2.12.2",
+          "    - scala: ${scalaVersion.value}",
           s"      env: ${integrationVars(flags)}"
         )
       } else List.empty[String]
@@ -230,19 +224,12 @@ lazy val publishSettings = {
 }
 
 // FindBugs
-import de.johoop.findbugs4sbt.{ FindBugs, ReportType }, FindBugs.{
-  findbugsExcludeFilters, findbugsReportPath, findbugsReportType,
-  findbugsSettings
-}
-
-findbugsSettings
-
 findbugsExcludeFilters := Some(
   scala.xml.XML.loadFile(baseDirectory.value / "project" / (
     "findbugs-exclude-filters.xml"))
 )
 
-findbugsReportType := Some(ReportType.PlainHtml)
+findbugsReportType := Some(FindbugsReport.PlainHtml)
 
 findbugsReportPath := Some(target.value / "findbugs.html")
 
@@ -250,8 +237,6 @@ findbugsReportPath := Some(target.value / "findbugs.html")
 import scalariform.formatter.preferences._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
-
-scalariformSettings(autoformat = true)
 
 ScalariformKeys.preferences := ScalariformKeys.preferences.value.
   setPreference(AlignParameters, false).
@@ -272,7 +257,7 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value.
   setPreference(SpacesAroundMultiImports, true).
   setPreference(SpacesWithinPatternBinders, true)
 
-Scapegoat.settings
+//Scapegoat.settings
 
 lazy val root = (project in file(".")).
   settings(publishSettings ++ Release.settings)
