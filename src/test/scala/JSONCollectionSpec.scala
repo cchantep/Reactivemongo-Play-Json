@@ -168,7 +168,7 @@ class JSONCollectionSpec(implicit ee: ExecutionEnv)
           queryOption = Option(Json.obj("username" -> "John Doe"))
         )
 
-        val expected = Json.parse(s"""{"find":"${collection.name}","skip":0,"snapshot":false,"tailable":false,"awaitData":false,"oplogReplay":false,"filter":{"username":"John Doe"},"$$readPreference":{"mode":"primary"}}""")
+        val expected = Json.parse(s"""{"find":"${collection.name}","skip":0,"tailable":false,"awaitData":false,"oplogReplay":false,"filter":{"username":"John Doe"},"$$readPreference":{"mode":"primary"}}""")
 
         builder.merge(ReadPreference.Primary) must beTypedEqualTo(expected)
       }
@@ -182,7 +182,7 @@ class JSONCollectionSpec(implicit ee: ExecutionEnv)
         )
 
         "with query builder #1" in {
-          val expected = Json.parse(s"""{"find":"${collection.name}","skip":0,"snapshot":false,"tailable":false,"awaitData":false,"oplogReplay":false,"filter":{"username":"John Doe"},"sort":{"age":1},"$$readPreference":{"mode":"primary"}}""")
+          val expected = Json.parse(s"""{"find":"${collection.name}","skip":0,"tailable":false,"awaitData":false,"oplogReplay":false,"filter":{"username":"John Doe"},"sort":{"age":1},"$$readPreference":{"mode":"primary"}}""")
 
           builder1.merge(ReadPreference.Primary) must beTypedEqualTo(expected)
         }
@@ -190,7 +190,7 @@ class JSONCollectionSpec(implicit ee: ExecutionEnv)
         "with query builder #2" in {
           val builder2 = builder1.copy(commentString = Option("get john doe users sorted by age"))
 
-          val expected = Json.parse(s"""{"find":"${collection.name}","skip":0,"snapshot":false,"tailable":false,"awaitData":false,"oplogReplay":false,"filter":{"username":"John Doe"},"sort":{"age":1},"comment":"get john doe users sorted by age","$$readPreference":{"mode":"primary"}}""")
+          val expected = Json.parse(s"""{"find":"${collection.name}","skip":0,"tailable":false,"awaitData":false,"oplogReplay":false,"filter":{"username":"John Doe"},"sort":{"age":1},"comment":"get john doe users sorted by age","$$readPreference":{"mode":"primary"}}""")
 
           builder2.merge(ReadPreference.Primary) must beTypedEqualTo(expected)
         }
