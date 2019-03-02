@@ -39,12 +39,6 @@ unmanagedSourceDirectories in Compile += {
   (sourceDirectory in Compile).value / playDir.value
 }
 
-resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-
-resolvers += "Sonatype Staging" at "https://oss.sonatype.org/content/repositories/staging/"
-
-resolvers += "Sonatype Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/"
-
 resolvers ++= Seq(
   Resolver.sonatypeRepo("snapshots"),
   "Typesafe repository releases".at(
