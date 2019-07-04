@@ -15,7 +15,7 @@
  */
 package reactivemongo.play.json
 
-import scala.util.{ Failure, Success }
+import scala.util.{ Failure, Success, Try }
 
 import play.api.libs.json.{
   Format,
@@ -46,6 +46,7 @@ import reactivemongo.bson.{
   BSONBinary,
   BSONBoolean,
   BSONDateTime,
+  BSONDecimal,
   BSONDocument,
   BSONDocumentReader,
   BSONDocumentWriter,
@@ -75,6 +76,7 @@ import scala.math.BigDecimal.{
   int2bigDecimal,
   long2bigDecimal
 }
+import scala.math.BigDecimal
 
 object `package` extends ImplicitBSONHandlers {
   object readOpt {
@@ -281,6 +283,41 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
 
     val partialWrites: PartialFunction[BSONValue, JsValue] = {
       case boolean: BSONBoolean => JsBoolean(boolean.value)
+    }
+  }
+
+  implicit object BSONDecimalFormat extends PartialFormat[BSONDecimal] {
+
+    val partialReads: PartialFunction[JsValue, JsResult[BSONDecimal]] = {
+      case DecimalRead(v) => JsSuccess(v)
+    }
+
+    val partialWrites: PartialFunction[BSONValue, JsValue] = {
+      @SuppressWarnings(Array("LooksLikeInterpolatedString"))
+      @inline def json: PartialFunction[BSONValue, JsValue] = {
+        case DecimalWrite(v) => v
+      }
+
+      json
+    }
+
+    private[json] object DecimalRead {
+      @SuppressWarnings(Array("LooksLikeInterpolatedString"))
+      def unapply(obj: JsObject): Option[BSONDecimal] =
+        (obj \ f"$$decimal").asOpt[JsValue].flatMap(strict) orElse
+          (obj \ f"$$decimal" \ f"$$numberDecimal").asOpt[JsValue].flatMap(strict)
+    }
+
+    private val strict: PartialFunction[JsValue, Option[BSONDecimal]] = {
+      case JsNumber(n) => BSONDecimal.fromBigDecimal(n).toOption
+      case JsString(n) => Try(BigDecimal(n)).flatMap(BSONDecimal.fromBigDecimal).toOption
+      case _           => None
+    }
+
+    private[json] object DecimalWrite {
+      def unapply(bsonDecimal: BSONDecimal): Option[JsValue] = {
+        BSONDecimal.toBigDecimal(bsonDecimal).toOption.map(JsNumber.apply)
+      }
     }
   }
 
@@ -627,12 +664,14 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
     symbol: PartialReads[BSONSymbol],
     array: PartialReads[BSONArray],
     doc: PartialReads[BSONDocument],
-    undef: PartialReads[BSONUndefined.type]
+    undef: PartialReads[BSONUndefined.type],
+    decimal: PartialReads[BSONDecimal]
   ): JsResult[BSONValue] =
     string.partialReads.
       orElse(objectID.partialReads).
       orElse(javascript.partialReads).
       orElse(dateTime.partialReads).
+      orElse(decimal.partialReads).
       orElse(timestamp.partialReads).
       orElse(binary.partialReads).
       orElse(regex.partialReads).
@@ -673,11 +712,13 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
     symbol: PartialWrites[BSONSymbol],
     array: PartialWrites[BSONArray],
     doc: PartialWrites[BSONDocument],
-    undef: PartialWrites[BSONUndefined.type]
+    undef: PartialWrites[BSONUndefined.type],
+    decimal: PartialWrites[BSONDecimal]
   ): JsValue = string.partialWrites.
     orElse(objectID.partialWrites).
     orElse(javascript.partialWrites).
     orElse(dateTime.partialWrites).
+    orElse(decimal.partialWrites).
     orElse(timestamp.partialWrites).
     orElse(binary.partialWrites).
     orElse(regex.partialWrites).
