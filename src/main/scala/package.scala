@@ -608,7 +608,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
           val subtpe = for {
             hexaTpe <- (obj \ f"$$type").asOpt[String]
             tpeByte <- Converters.str2Hex(hexaTpe).headOption
-            tpe <- scala.util.Try(Subtype(tpeByte)).toOption
+            tpe <- Try(Subtype(tpeByte)).toOption
           } yield tpe
 
           hexaValue -> subtpe

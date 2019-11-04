@@ -40,7 +40,7 @@ object JSONSerializationPack extends SerializationPack { self =>
   private[reactivemongo] type WidenValueReader[A] = Reads[A]
 
   private[reactivemongo] val IsDocument =
-    scala.reflect.ClassTag[Document](classOf[JsObject])
+    implicitly[scala.reflect.ClassTag[JsObject]]
 
   object IdentityReader extends Reader[Document] {
     def reads(js: JsValue): JsResult[Document] = js match {
@@ -152,11 +152,18 @@ object JSONSerializationPack extends SerializationPack { self =>
 
   private[reactivemongo] def bsonValue(json: JsValue): reactivemongo.bson.BSONValue = BSONFormats.toBSON(json).get
 
+  private[reactivemongo] val narrowIdentityReader: NarrowValueReader[JsValue] =
+    Reads[JsValue] { JsSuccess(_) }
+
   private[reactivemongo] def reader[A](f: JsObject => A): Reads[A] = Reads[A] {
     case obj @ JsObject(_) => try {
       JsSuccess(f(obj))
     } catch {
-      case NonFatal(cause) => JsError(cause.getMessage)
+      case err: reactivemongo.api.commands.CommandError =>
+        throw err // unsafe !! optimization
+
+      case NonFatal(cause) =>
+        JsError(cause.getMessage)
     }
 
     case _ => JsError("error.expected.jsobject")
@@ -176,6 +183,13 @@ object JSONSerializationPack extends SerializationPack { self =>
 
     def array(value: Value, values: Seq[Value]): Value =
       JsArray(value +: values)
+
+    def binary(data: Array[Byte]): Value =
+      Json.obj(
+        f"$$binary" -> Converters.hex2Str(data),
+        f"$$type" -> Converters.hex2Str(Array(
+          Subtype.GenericBinarySubtype.value.toByte))
+      )
 
     // (String, Json.JsValueWrapper)
     def elementProducer(name: String, value: Value): ElementProducer =
@@ -204,6 +218,9 @@ object JSONSerializationPack extends SerializationPack { self =>
         ))
     }
 
+    def dateTime(value: Long): Value =
+      Json.obj(f"$$date" -> Json.obj(f"$$numberLong" -> value))
+
     def uuid(id: UUID): Value = {
       val buf = java.nio.ByteBuffer.wrap(Array.ofDim[Byte](16))
 
@@ -219,6 +236,16 @@ object JSONSerializationPack extends SerializationPack { self =>
 
     def regex(pattern: String, options: String): Value =
       Json.obj(f"$$regex" -> pattern, f"$$options" -> options)
+
+    def generateObjectId(): pack.Value = {
+      val id = UUID.randomUUID()
+      val buf = java.nio.ByteBuffer.wrap(Array.ofDim[Byte](16))
+
+      buf putLong id.getMostSignificantBits
+      buf putLong id.getLeastSignificantBits
+
+      Json.obj(f"$$oid" -> Converters.hex2Str(buf.array))
+    }
   }
 
   private object Decoder
@@ -234,6 +261,9 @@ object JSONSerializationPack extends SerializationPack { self =>
 
     def get(document: JsObject, name: String): Option[JsValue] =
       document.value.get(name)
+
+    def binary(document: JsObject, name: String): Option[Array[Byte]] =
+      (document \ name \ f"$$binary").asOpt[String].map(Converters.str2Hex)
 
     def booleanLike(document: JsObject, name: String): Option[Boolean] =
       document.value.get(name).collect {

@@ -254,6 +254,19 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
     section("gt_mongo32")
   }
 
+  "GridFS" should {
+    "be setup with JSON serialization" in {
+      import reactivemongo.play.json.collection.JSONCollectionProducer
+
+      val x = reactivemongo.api.gridfs.GridFS(
+        JSONSerializationPack, db, "fs")
+
+      x.ensureIndex() must beTrue.awaitFor(timeout) and {
+        x.ensureIndex() must beFalse.awaitFor(timeout)
+      }
+    }
+  }
+
   "JSON collection" should {
     @inline def cursorAll: Cursor[JsObject] =
       collection.withReadPreference(ReadPreference.secondaryPreferred).
