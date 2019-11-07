@@ -548,7 +548,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
     }
 
     val partialWrites: PartialFunction[BSONValue, JsValue] = {
-      case BSONLong(l) => JsNumber(l)
+      case BSONLong(l) => Json.obj(f"$$long" -> JsNumber(l))
     }
 
     private object LongValue {
