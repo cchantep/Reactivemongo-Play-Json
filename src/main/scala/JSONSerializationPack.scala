@@ -2,6 +2,8 @@ package reactivemongo.play.json
 
 import java.util.UUID
 
+import scala.reflect.ClassTag
+
 import scala.util.{ Failure, Success, Try }
 import scala.util.control.NonFatal
 
@@ -39,8 +41,8 @@ object JSONSerializationPack extends SerializationPack { self =>
   type NarrowValueReader[A] = Reads[A]
   private[reactivemongo] type WidenValueReader[A] = Reads[A]
 
-  private[reactivemongo] val IsDocument =
-    implicitly[scala.reflect.ClassTag[JsObject]]
+  private[reactivemongo] val IsDocument = implicitly[ClassTag[JsObject]]
+  private[reactivemongo] val IsValue = implicitly[ClassTag[JsValue]]
 
   object IdentityReader extends Reader[Document] {
     def reads(js: JsValue): JsResult[Document] = js match {
