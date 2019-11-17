@@ -256,7 +256,8 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
 
   "GridFS" should {
     "be setup with JSON serialization" in {
-      import reactivemongo.play.json.collection.JSONCollectionProducer
+      @com.github.ghik.silencer.silent
+      implicit def collp = reactivemongo.play.json.collection.JSONCollectionProducer
 
       val x = reactivemongo.api.gridfs.GridFS(
         JSONSerializationPack, db, "fs")
