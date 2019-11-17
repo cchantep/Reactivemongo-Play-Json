@@ -26,9 +26,14 @@ import play.api.libs.json.{
 
 import reactivemongo.api.SerializationPack
 
+import reactivemongo.api.bson.buffer.WritableBuffer
+
 import reactivemongo.bson.utils.Converters
 import reactivemongo.bson.{ BSONDocument, Subtype }
-import reactivemongo.bson.buffer.{ ReadableBuffer, WritableBuffer }
+import reactivemongo.bson.buffer.{
+  ReadableBuffer,
+  WritableBuffer => LegacyWritable
+}
 
 import reactivemongo.play.json.commands.JSONCommandError
 
@@ -64,12 +69,30 @@ object JSONSerializationPack extends SerializationPack { self =>
       case JsSuccess(v, _)       => v
     }
 
-  def writeToBuffer(buffer: WritableBuffer, document: Document): WritableBuffer = BSONFormats.toBSON(document) match {
+  def writeToBuffer(buffer: LegacyWritable, document: Document): LegacyWritable = BSONFormats.toBSON(document) match {
     case JSONCommandError(err) => throw err
     case JsError(errors)       => throw JsResultException(errors)
 
     case JsSuccess(d @ BSONDocument(_), _) => {
       BSONDocument.write(d, buffer)
+      buffer
+    }
+
+    case JsSuccess(v, _) => sys.error(
+      s"fails to write the document: $document; unexpected conversion $v"
+    )
+  }
+
+  def writeToBuffer(
+    buffer: WritableBuffer,
+    document: Document): WritableBuffer = BSONFormats.toBSON(document) match {
+    case JSONCommandError(err) => throw err
+    case JsError(errors)       => throw JsResultException(errors)
+
+    case JsSuccess(d @ BSONDocument(_), _) => {
+      val tmp = new reactivemongo.bson.buffer.ArrayBSONBuffer()
+      BSONDocument.write(d, tmp)
+      buffer.writeBytes(tmp.array)
       buffer
     }
 

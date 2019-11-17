@@ -5,6 +5,8 @@ organization := "org.reactivemongo"
 
 name := "reactivemongo-play-json"
 
+ThisBuild / resolvers += Resolver.sonatypeRepo("staging")
+
 version ~= { ver =>
   sys.env.get("RELEASE_SUFFIX") match {
     case Some(suffix) => ver.span(_ != '-') match {
@@ -20,7 +22,7 @@ import Compiler.{ playLower, playUpper }
 
 val playVer = Def.setting[String] {
   sys.env.get("PLAY_VERSION").getOrElse {
-    if (scalaVersion.value startsWith "2.11.") playLower
+    if (scalaBinaryVersion.value == "2.11") playLower
     else playUpper
   }
 }
@@ -36,8 +38,7 @@ unmanagedSourceDirectories in Compile += {
 
 resolvers ++= Seq(
   Resolver.sonatypeRepo("snapshots"),
-  "Typesafe repository releases".at(
-    "http://repo.typesafe.com/typesafe/releases/"),
+  Resolver.typesafeRepo("releases"),
   "Tatami Snapshots".at(
     "https://raw.github.com/cchantep/tatami/master/snapshots")
 )
