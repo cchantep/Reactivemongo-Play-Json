@@ -34,8 +34,7 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
   import reactivemongo.api.bson.compat._
 
   case class User(
-      _id: Option[BSONObjectID] = None, username: String, height: Double
-  )
+    _id: Option[BSONObjectID] = None, username: String, height: Double)
 
   implicit val userReads = Json.reads[User]
   implicit val userWrites = Json.writes[User]
@@ -43,8 +42,7 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
   lazy val collectionName = s"test_users_${System identityHashCode this}"
   lazy val bsonCollection = db(collectionName)
   lazy val collection = new JSONCollection(
-    db, collectionName, new FailoverStrategy(), db.defaultReadPreference
-  )
+    db, collectionName, new FailoverStrategy(), db.defaultReadPreference)
 
   "JSONCollection.save" should {
     "add object if there does not exist in database" in {
@@ -62,8 +60,7 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
             bsonCollection.find(query, Option.empty[BSONDocument]).
               one[BSONDocument] must beSome[BSONDocument].which { d =>
                 d.get("_id") must beSome and (
-                  d.get("username") must beSome(BSONString("John Doe"))
-                )
+                  d.get("username") must beSome(BSONString("John Doe")))
               }.await(1, timeout)
           }
         }.await(1, timeout)
@@ -102,8 +99,7 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
 
       fetched3 must beSome[BSONDocument].which { d =>
         d.get("_id") must beSome(fetched1.get._id.get) and (
-          d.get("username") must beSome(BSONString("Jane Doe"))
-        )
+          d.get("username") must beSome(BSONString("Jane Doe")))
       }
     }
 
@@ -114,14 +110,12 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
 
       // Add document..
       collection.insert.one(User(
-        _id = Some(id), username = "Robert Roe", height = 13
-      )).map(_.ok) aka "saved" must beTrue.await(1, timeout) and {
+        _id = Some(id), username = "Robert Roe", height = 13)).map(_.ok) aka "saved" must beTrue.await(1, timeout) and {
         // Check data in mongodb..
         bsonCollection.find(query, Option.empty[BSONDocument]).
           one[BSONDocument] must beSome[BSONDocument].which { d =>
             d.get("_id") must beSome(id) and (
-              d.get("username") must beSome(BSONString("Robert Roe"))
-            )
+              d.get("username") must beSome(BSONString("Robert Roe")))
           }.await(1, timeout)
       }
     }
@@ -131,16 +125,14 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
         key = "height",
         selector = None,
         readConcern = ReadConcern.Local,
-        collation = None
-      ) must contain(atMost(12, 13)).awaitFor(timeout)
+        collation = None) must contain(atMost(12, 13)).awaitFor(timeout)
     }
 
     "delete inserted user" in {
       val query = Json.obj("username" -> "To Be Deleted")
       val id = BSONObjectID.generate
       val user = User(
-        _id = Some(id), username = "To Be Deleted", height = 13
-      )
+        _id = Some(id), username = "To Be Deleted", height = 13)
 
       def find() = collection.find(query, Option.empty[JsObject]).one[User]
 
@@ -163,8 +155,7 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
         selector = Json.obj("_id" -> id),
         update = User(
           _id = Some(id),
-          username = "James Joyce", height = 1.264290338792695E+64
-        ),
+          username = "James Joyce", height = 1.264290338792695E+64),
         fetchNewObject = false,
         upsert = true,
         sort = None,
@@ -291,11 +282,9 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
     "find with selector and projection" in {
       collection.find(
         selector = Json.obj("username" -> "Jane Doe"),
-        projection = Option(Json.obj("_id" -> 0))
-      ).cursor[JsObject]().headOption must beSome[JsObject].which { json =>
+        projection = Option(Json.obj("_id" -> 0))).cursor[JsObject]().headOption must beSome[JsObject].which { json =>
           Json.stringify(json) must beTypedEqualTo(
-            "{\"username\":\"Jane Doe\",\"height\":12}"
-          )
+            "{\"username\":\"Jane Doe\",\"height\":12}")
         }.await(1, timeout)
     }
 
@@ -308,8 +297,7 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
 
       count() aka "all" must beTypedEqualTo(3L).await(1, timeout) and (
         count(Some(Json.obj("username" -> "Jane Doe"))).
-        aka("with query") must beTypedEqualTo(1L).await(1, timeout)
-      ) and {
+        aka("with query") must beTypedEqualTo(1L).await(1, timeout)) and {
           count(limit = Some(1)) must beTypedEqualTo(1L).await(1, timeout)
         }
     }
@@ -323,8 +311,7 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
         cursor[JsObject]().jsArray().
         map(_.value.map { js => (js \ "username").as[String] }.toSeq).
         aka("extracted JSON array") must beTypedEqualTo(Seq(
-          "Jane Doe", "Robert Roe", "James Joyce"
-        )).await(1, timeout)
+          "Jane Doe", "Robert Roe", "James Joyce")).await(1, timeout)
     }
   }
 
@@ -364,8 +351,7 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
       (mini, false, false),
       (withCode, true, false),
       (withErrmsg, false, true),
-      (full, true, true)
-    )) {
+      (full, true, true))) {
       case (origDoc, hasCode, hasErrmsg) =>
         val res = Try(pack.deserialize[UnitBox.type](origDoc, reader))
 

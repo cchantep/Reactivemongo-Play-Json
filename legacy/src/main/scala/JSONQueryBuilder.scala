@@ -11,18 +11,17 @@ import reactivemongo.play.json.JSONSerializationPack
 @SuppressWarnings(Array("FinalModifierOnCaseClass"))
 @deprecated("Useless, will be remove", "0.16.0")
 case class JSONQueryBuilder(
-    @transient collection: Collection,
-    failoverStrategy: FailoverStrategy,
-    queryOption: Option[JsObject] = None,
-    sortOption: Option[JsObject] = None,
-    projectionOption: Option[JsObject] = None,
-    hintOption: Option[JsObject] = None,
-    explainFlag: Boolean = false,
-    snapshotFlag: Boolean = false,
-    commentString: Option[String] = None,
-    options: QueryOpts = QueryOpts(),
-    maxTimeMsOption: Option[Long] = None
-) extends GenericQueryBuilder[JSONSerializationPack.type] {
+  @transient collection: Collection,
+  failoverStrategy: FailoverStrategy,
+  queryOption: Option[JsObject] = None,
+  sortOption: Option[JsObject] = None,
+  projectionOption: Option[JsObject] = None,
+  hintOption: Option[JsObject] = None,
+  explainFlag: Boolean = false,
+  snapshotFlag: Boolean = false,
+  commentString: Option[String] = None,
+  options: QueryOpts = QueryOpts(),
+  maxTimeMsOption: Option[Long] = None) extends GenericQueryBuilder[JSONSerializationPack.type] {
   type Self = JSONQueryBuilder
 
   @transient val pack = JSONSerializationPack

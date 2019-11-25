@@ -22,7 +22,7 @@ class AggregationSpec(implicit ee: ExecutionEnv)
   case class Location(lon: Double, lat: Double)
 
   case class ZipCode(_id: String, city: String, state: String,
-      population: Long, location: Location)
+    population: Long, location: Location)
 
   implicit val locationHandler = Json.format[Location]
   implicit val zipCodeHandler = Json.format[ZipCode]
@@ -33,8 +33,7 @@ class AggregationSpec(implicit ee: ExecutionEnv)
     ZipCode("72000", "LE MANS", "FR", 148169L, Location(48.0077, 0.1984)),
     ZipCode("JP-13", "TOKYO", "JP", 13185502L,
       Location(35.683333, 139.683333)),
-    ZipCode("AO", "AOGASHIMA", "JP", 200L, Location(32.457, 139.767))
-  )
+    ZipCode("AO", "AOGASHIMA", "JP", 200L, Location(32.457, 139.767)))
 
   "Zip codes" should {
     "be inserted" in {
@@ -52,15 +51,13 @@ class AggregationSpec(implicit ee: ExecutionEnv)
       // http://docs.mongodb.org/manual/tutorial/aggregation-zip-code-data-set/#return-states-with-populations-above-10-million
       val expected = List(
         document("_id" -> "JP", "totalPop" -> 13185702L),
-        document("_id" -> "NY", "totalPop" -> 19746227L)
-      )
+        document("_id" -> "NY", "totalPop" -> 19746227L))
 
       collection.aggregateWith[JsObject]() { agg =>
         import agg.{ Group, Match, SumField }
 
         Group(toJson("$state"))(
-          "totalPop" -> SumField("population")
-        ) -> List(Match(document("totalPop" -> document("$gte" -> 10000000L))))
+          "totalPop" -> SumField("population")) -> List(Match(document("totalPop" -> document("$gte" -> 10000000L))))
       }.collect(3, Cursor.FailOnError[List[JsObject]]()).
         aka("aggregated") must beTypedEqualTo(expected).await(1, timeout)
     }
@@ -70,8 +67,7 @@ class AggregationSpec(implicit ee: ExecutionEnv)
         import agg.{ Group, Match, SumField }
 
         Group(toJson("$state"))(
-          "totalPop" -> SumField("population")
-        ) -> List(Match(document("totalPop" -> document("$gte" -> 10000000L))))
+          "totalPop" -> SumField("population")) -> List(Match(document("totalPop" -> document("$gte" -> 10000000L))))
       }.collect(Int.MaxValue, Cursor.FailOnError[List[JsObject]]()).
         aka("aggregated") must beLike[List[JsObject]] {
           case explainResult :: Nil =>
@@ -85,19 +81,16 @@ class AggregationSpec(implicit ee: ExecutionEnv)
       val expected = List(
         document("_id" -> "NY", "avgCityPop" -> 19746227D),
         document("_id" -> "FR", "avgCityPop" -> 148169D),
-        document("_id" -> "JP", "avgCityPop" -> 6592851D)
-      )
+        document("_id" -> "JP", "avgCityPop" -> 6592851D))
 
       def collect(upTo: Int = Int.MaxValue) =
         collection.aggregateWith[JsObject](batchSize = Some(upTo)) { agg =>
           import agg.{ AvgField, Group, SumField }
 
           Group(document("state" -> "$state", "city" -> "$city"))(
-            "pop" -> SumField("population")
-          ) -> List(
+            "pop" -> SumField("population")) -> List(
               Group(toJson("$_id.state"))("avgCityPop" ->
-                AvgField("pop"))
-            )
+                AvgField("pop")))
         }.collect(upTo, Cursor.FailOnError[List[JsObject]]())
 
       "successfully as a single batch" in {
@@ -122,31 +115,21 @@ class AggregationSpec(implicit ee: ExecutionEnv)
       val expected = List(
         document(
           "biggestCity" -> document(
-            "name" -> "NEW YORK", "population" -> 19746227L
-          ),
+            "name" -> "NEW YORK", "population" -> 19746227L),
           "smallestCity" -> document(
-            "name" -> "NEW YORK", "population" -> 19746227L
-          ),
-          "state" -> "NY"
-        ),
+            "name" -> "NEW YORK", "population" -> 19746227L),
+          "state" -> "NY"),
         document(
           "biggestCity" -> document(
-            "name" -> "LE MANS", "population" -> 148169L
-          ),
+            "name" -> "LE MANS", "population" -> 148169L),
           "smallestCity" -> document(
-            "name" -> "LE MANS", "population" -> 148169L
-          ),
-          "state" -> "FR"
-        ), document(
+            "name" -> "LE MANS", "population" -> 148169L),
+          "state" -> "FR"), document(
           "biggestCity" -> document(
-            "name" -> "TOKYO", "population" -> 13185502L
-          ),
+            "name" -> "TOKYO", "population" -> 13185502L),
           "smallestCity" -> document(
-            "name" -> "AOGASHIMA", "population" -> 200L
-          ),
-          "state" -> "JP"
-        )
-      )
+            "name" -> "AOGASHIMA", "population" -> 200L),
+          "state" -> "JP"))
 
       collection.aggregateWith[JsObject]() { agg =>
         import agg.{
@@ -160,23 +143,18 @@ class AggregationSpec(implicit ee: ExecutionEnv)
         }
 
         Group(document("state" -> "$state", "city" -> "$city"))(
-          "pop" -> SumField("population")
-        ) -> List(
+          "pop" -> SumField("population")) -> List(
             Sort(Ascending("population")),
             Group(toJson("$_id.state"))(
               "biggestCity" -> LastField("_id.city"),
               "biggestPop" -> LastField("pop"),
               "smallestCity" -> FirstField("_id.city"),
-              "smallestPop" -> FirstField("pop")
-            ),
+              "smallestPop" -> FirstField("pop")),
             Project(document("_id" -> 0, "state" -> "$_id",
               "biggestCity" -> document(
-                "name" -> "$biggestCity", "population" -> "$biggestPop"
-              ),
+                "name" -> "$biggestCity", "population" -> "$biggestPop"),
               "smallestCity" -> document(
-                "name" -> "$smallestCity", "population" -> "$smallestPop"
-              )))
-          )
+                "name" -> "$smallestCity", "population" -> "$smallestPop"))))
       }.collect(Int.MaxValue, Cursor.FailOnError[List[JsObject]]()).
         aka("results") must beTypedEqualTo(expected).await(1, timeout)
     }

@@ -63,22 +63,18 @@ object JSONAggregationImplicits {
         "aggregate" -> toJson(agg.collection),
         "pipeline" -> JsArray(agg.command.pipeline.map(_.makePipe)),
         "explain" -> toJson(agg.command.explain),
-        "allowDiskUse" -> toJson(agg.command.allowDiskUse)
-      )
+        "allowDiskUse" -> toJson(agg.command.allowDiskUse))
 
       def optFields: List[Option[(String, JsValue)]] = List(
         agg.command.cursor.map(c => "cursor" -> Json.obj(
-          "batchSize" -> c.batchSize
-        ))
-      )
+          "batchSize" -> c.batchSize)))
 
       def options = {
         if (agg.command.wireVersion < MongoWireVersion.V32) optFields.flatten
         else (optFields ++ List(
           Some(agg.command.bypassDocumentValidation).map(by =>
             "bypassDocumentValidation" -> toJson(by)),
-          agg.command.readConcern.map(rc => "readConcern" -> toJson(rc.level))
-        )).flatten
+          agg.command.readConcern.map(rc => "readConcern" -> toJson(rc.level)))).flatten
       }
 
       JsObject(fields ++ options)

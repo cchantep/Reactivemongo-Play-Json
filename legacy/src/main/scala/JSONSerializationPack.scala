@@ -52,7 +52,7 @@ object JSONSerializationPack extends SerializationPack { self =>
   object IdentityReader extends Reader[Document] {
     def reads(js: JsValue): JsResult[Document] = js match {
       case o @ JsObject(_) => JsSuccess(o)
-      case v               => JsError(s"object is expected: $v")
+      case v => JsError(s"object is expected: $v")
     }
   }
 
@@ -65,13 +65,13 @@ object JSONSerializationPack extends SerializationPack { self =>
   def deserialize[A](document: Document, reader: Reader[A]): A =
     reader.reads(document) match {
       case JSONCommandError(err) => throw err
-      case JsError(errors)       => throw JsResultException(errors)
-      case JsSuccess(v, _)       => v
+      case JsError(errors) => throw JsResultException(errors)
+      case JsSuccess(v, _) => v
     }
 
   def writeToBuffer(buffer: LegacyWritable, document: Document): LegacyWritable = BSONFormats.toBSON(document) match {
     case JSONCommandError(err) => throw err
-    case JsError(errors)       => throw JsResultException(errors)
+    case JsError(errors) => throw JsResultException(errors)
 
     case JsSuccess(d @ BSONDocument(_), _) => {
       BSONDocument.write(d, buffer)
@@ -79,15 +79,14 @@ object JSONSerializationPack extends SerializationPack { self =>
     }
 
     case JsSuccess(v, _) => sys.error(
-      s"fails to write the document: $document; unexpected conversion $v"
-    )
+      s"fails to write the document: $document; unexpected conversion $v")
   }
 
   def writeToBuffer(
     buffer: WritableBuffer,
     document: Document): WritableBuffer = BSONFormats.toBSON(document) match {
     case JSONCommandError(err) => throw err
-    case JsError(errors)       => throw JsResultException(errors)
+    case JsError(errors) => throw JsResultException(errors)
 
     case JsSuccess(d @ BSONDocument(_), _) => {
       val tmp = new reactivemongo.bson.buffer.ArrayBSONBuffer()
@@ -97,8 +96,7 @@ object JSONSerializationPack extends SerializationPack { self =>
     }
 
     case JsSuccess(v, _) => sys.error(
-      s"fails to write the document: $document; unexpected conversion $v"
-    )
+      s"fails to write the document: $document; unexpected conversion $v")
   }
 
   def readFromBuffer(buffer: ReadableBuffer): Document =
@@ -115,9 +113,9 @@ object JSONSerializationPack extends SerializationPack { self =>
   def readValue[A](value: Value, reader: WidenValueReader[A]): Try[A] =
     reader.reads(value) match {
       case JSONCommandError(err) => Failure(err)
-      case JsError(errors)       => Failure(JsResultException(errors))
+      case JsError(errors) => Failure(JsResultException(errors))
 
-      case JsSuccess(v, _)       => Success(v)
+      case JsSuccess(v, _) => Success(v)
     }
 
   override private[reactivemongo] def bsonSize(value: JsValue): Int = {
@@ -125,11 +123,11 @@ object JSONSerializationPack extends SerializationPack { self =>
 
     value match {
       case JsNumber(n) if !n.ulp.isWhole => 8 // Double
-      case JsNumber(n) if n.isValidInt   => 4 // Int
-      case JsNumber(_)                   => 8 // Long
-      case JsString(s)                   => str(s)
-      case JsBoolean(_)                  => 1
-      case JsNull                        => 0
+      case JsNumber(n) if n.isValidInt => 4 // Int
+      case JsNumber(_) => 8 // Long
+      case JsString(s) => str(s)
+      case JsBoolean(_) => 1
+      case JsNull => 0
 
       case JsArray(values) => bsonSize(values.zipWithIndex.map {
         case (v, idx) => idx.toString -> v
@@ -140,9 +138,9 @@ object JSONSerializationPack extends SerializationPack { self =>
           BSONMaxKeyFormat.MaxKey(_) |
           BSONMinKeyFormat.MinKey(_) => 0
 
-        case BSONSymbolFormat.Symbol(s)         => str(s)
+        case BSONSymbolFormat.Symbol(s) => str(s)
         case BSONJavaScriptFormat.JavaScript(s) => str(s)
-        case BSONObjectIDFormat.ObjectID(s)     => str(s)
+        case BSONObjectIDFormat.ObjectID(s) => str(s)
 
         case BSONRegexFormat.Regex(r, o) =>
           2 + r.getBytes.size + o.fold(0)(_.getBytes.size)
@@ -172,7 +170,7 @@ object JSONSerializationPack extends SerializationPack { self =>
 
   private[reactivemongo] def document(doc: reactivemongo.bson.BSONDocument): JsObject = BSONFormats.toJSON(doc) match {
     case obj @ JsObject(_) => obj
-    case _                 => throw new JSONException("error.expected.jsobject")
+    case _ => throw new JSONException("error.expected.jsobject")
   }
 
   private[reactivemongo] def bsonValue(json: JsValue): reactivemongo.bson.BSONValue = BSONFormats.toBSON(json).get
@@ -213,8 +211,7 @@ object JSONSerializationPack extends SerializationPack { self =>
       Json.obj(
         f"$$binary" -> Converters.hex2Str(data),
         f"$$type" -> Converters.hex2Str(Array(
-          Subtype.GenericBinarySubtype.value.toByte))
-      )
+          Subtype.GenericBinarySubtype.value.toByte)))
 
     // (String, Json.JsValueWrapper)
     def elementProducer(name: String, value: Value): ElementProducer =
@@ -239,8 +236,7 @@ object JSONSerializationPack extends SerializationPack { self =>
         f"$$i" -> ordinal,
         f"$$timestamp" -> Json.obj(
           "t" -> time,
-          "i" -> ordinal
-        ))
+          "i" -> ordinal))
     }
 
     def dateTime(value: Long): Value =
@@ -255,8 +251,7 @@ object JSONSerializationPack extends SerializationPack { self =>
       Json.obj(
         f"$$binary" -> Converters.hex2Str(buf.array),
         f"$$type" -> Converters.hex2Str(Array(
-          Subtype.UuidSubtype.value.toByte))
-      )
+          Subtype.UuidSubtype.value.toByte)))
     }
 
     def regex(pattern: String, options: String): Value =
@@ -293,7 +288,7 @@ object JSONSerializationPack extends SerializationPack { self =>
     def booleanLike(document: JsObject, name: String): Option[Boolean] =
       document.value.get(name).collect {
         case JsBoolean(b) => b
-        case JsNumber(n)  => n.intValue > 0
+        case JsNumber(n) => n.intValue > 0
       }
 
     def child(document: JsObject, name: String): Option[JsObject] =

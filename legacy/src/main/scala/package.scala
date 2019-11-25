@@ -101,7 +101,7 @@ object BSONFormats extends BSONFormats {
     val r = bsonReader.widenReader[T]
 
     BSONFormats.toBSON(json).flatMap(r.readTry(_) match {
-      case Success(v)      => JsSuccess(v)
+      case Success(v) => JsSuccess(v)
       case Failure(reason) => JsError(reason.getMessage)
     })
   }
@@ -150,7 +150,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
 
     val partialWrites: PartialFunction[BSONValue, JsValue] = {
       case BSONDouble(v) if v.isNaN => jsNaN
-      case BSONDouble(v)            => JsNumber(v)
+      case BSONDouble(v) => JsNumber(v)
     }
 
     private object DoubleValue {
@@ -197,10 +197,9 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
       obj.fields.map { tuple =>
         tuple._1 -> (toBSON(tuple._2) match {
           case JsSuccess(bson, _) => bson
-          case JsError(err)       => throw new JSONException(err.toString)
+          case JsError(err) => throw new JSONException(err.toString)
         })
-      }
-    )
+      })
 
     // UNSAFE - FOR INTERNAL USE
     private[json] def json(bson: BSONDocument): JsObject =
@@ -217,7 +216,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
             JsSuccess(BSONArray(arr.value.map { value =>
               toBSON(value) match {
                 case JsSuccess(bson, _) => bson
-                case JsError(err)       => throw new JSONException(err.toString)
+                case JsError(err) => throw new JSONException(err.toString)
               }
             }))
           } catch {
@@ -315,7 +314,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
     private val strict: PartialFunction[JsValue, Option[BSONDecimal]] = {
       case JsNumber(n) => BSONDecimal.fromBigDecimal(n).toOption
       case JsString(n) => Try(BigDecimal(n)).flatMap(BSONDecimal.fromBigDecimal).toOption
-      case _           => None
+      case _ => None
     }
 
     private[json] object DecimalWrite {
@@ -345,7 +344,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
         (obj \ f"$$date").asOpt[JsValue].flatMap {
           case n @ JsNumber(_) => n.asOpt[Long]
           case o @ JsObject(_) => (o \ f"$$numberLong").asOpt[Long]
-          case _               => None
+          case _ => None
         }
     }
   }
@@ -362,9 +361,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
           f"$$time" -> (ts.value >>> 32),
           f"$$i" -> ts.value.toInt,
           f"$$timestamp" -> Json.obj(
-            "t" -> (ts.value >>> 32), "i" -> ts.value.toInt
-          )
-        )
+            "t" -> (ts.value >>> 32), "i" -> ts.value.toInt))
       }
 
       json
@@ -392,7 +389,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
       def unapply(obj: JsObject): Option[BSONUndefined.type] =
         obj.value.get(f"$$undefined") match {
           case Some(JsBoolean(true)) => Some(BSONUndefined)
-          case _                     => None
+          case _ => None
         }
     }
 
@@ -413,18 +410,15 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
   implicit object BSONRegexFormat extends PartialFormat[BSONRegex] {
     val partialReads: PartialFunction[JsValue, JsResult[BSONRegex]] = {
       @SuppressWarnings(Array(
-        "ExistsSimplifableToContains", "LooksLikeInterpolatedString"
-      ))
+        "ExistsSimplifableToContains", "LooksLikeInterpolatedString"))
       @inline def bson: PartialFunction[JsValue, JsResult[BSONRegex]] = {
         case obj @ JsObject(fields) if (
           fields.contains(f"$$regex") &&
-          !(obj \ f"$$regex").asOpt[String].isDefined
-        ) => JsError(__ \ f"$$regex", "string expected")
+          !(obj \ f"$$regex").asOpt[String].isDefined) => JsError(__ \ f"$$regex", "string expected")
 
         case obj @ JsObject(fields) if (
           fields.contains(f"$$options") &&
-          !(obj \ f"$$options").asOpt[String].isDefined
-        ) => JsError(__ \ f"$$options", "string expected")
+          !(obj \ f"$$options").asOpt[String].isDefined) => JsError(__ \ f"$$options", "string expected")
 
         case Regex(rx, opts) => JsSuccess(BSONRegex(rx, opts.getOrElse("")))
       }
@@ -466,9 +460,9 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
       @SuppressWarnings(Array("LooksLikeInterpolatedString"))
       def unapply(obj: JsObject): Option[BSONMinKey.type] =
         obj.value.get(f"$$minKey") match {
-          case Some(JsOne)           => Some(BSONMinKey)
+          case Some(JsOne) => Some(BSONMinKey)
           case Some(JsBoolean(true)) => Some(BSONMinKey)
-          case _                     => None
+          case _ => None
         }
     }
 
@@ -494,9 +488,9 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
       @SuppressWarnings(Array("LooksLikeInterpolatedString"))
       def unapply(obj: JsObject): Option[BSONMaxKey.type] =
         obj.value.get(f"$$maxKey") match {
-          case Some(JsOne)           => Some(BSONMaxKey)
+          case Some(JsOne) => Some(BSONMaxKey)
           case Some(JsBoolean(true)) => Some(BSONMaxKey)
-          case _                     => None
+          case _ => None
         }
     }
 
@@ -527,7 +521,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
   implicit object BSONIntegerFormat extends PartialFormat[BSONInteger] {
     val partialReads: PartialFunction[JsValue, JsResult[BSONInteger]] = {
       case JsNumber(n) if n.isValidInt => JsSuccess(BSONInteger(n.toInt))
-      case IntValue(value)             => JsSuccess(BSONInteger(value))
+      case IntValue(value) => JsSuccess(BSONInteger(value))
     }
 
     val partialWrites: PartialFunction[BSONValue, JsValue] = {
@@ -543,7 +537,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
 
   implicit object BSONLongFormat extends PartialFormat[BSONLong] {
     val partialReads: PartialFunction[JsValue, JsResult[BSONLong]] = {
-      case JsNumber(long)   => JsSuccess(BSONLong(long.toLong))
+      case JsNumber(long) => JsSuccess(BSONLong(long.toLong))
       case LongValue(value) => JsSuccess(BSONLong(value))
     }
 
@@ -567,18 +561,15 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
           JsSuccess(BSONBinary(Converters.str2Hex(hexaStr), sub))
         } catch {
           case e: Exception => JsError(
-            s"error deserializing hex ${e.getMessage}"
-          )
+            s"error deserializing hex ${e.getMessage}")
         }
 
         case JsString(str) => try {
           JsSuccess(BSONBinary(
-            Converters.str2Hex(str), Subtype.UserDefinedSubtype
-          ))
+            Converters.str2Hex(str), Subtype.UserDefinedSubtype))
         } catch {
           case e: Exception => JsError(
-            s"error deserializing hex ${e.getMessage}"
-          )
+            s"error deserializing hex ${e.getMessage}")
         }
       }
 
@@ -593,10 +584,8 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
 
           Json.obj(
             f"$$binary" -> Converters.hex2Str(
-              binary.value.slice(remaining).readArray(remaining)
-            ),
-            f"$$type" -> Converters.hex2Str(Array(binary.subtype.value.toByte))
-          )
+              binary.value.slice(remaining).readArray(remaining)),
+            f"$$type" -> Converters.hex2Str(Array(binary.subtype.value.toByte)))
       }
 
       json
@@ -639,8 +628,8 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
 
   val numberReads: PartialFunction[JsValue, JsResult[BSONValue]] = {
     case JsNumber(n) if !n.ulp.isWhole => JsSuccess(BSONDouble(n.toDouble))
-    case JsNumber(n) if n.isValidInt   => JsSuccess(BSONInteger(n.toInt))
-    case JsNumber(n)                   => JsSuccess(BSONLong(n.toLong))
+    case JsNumber(n) if n.isValidInt => JsSuccess(BSONInteger(n.toInt))
+    case JsNumber(n) => JsSuccess(BSONLong(n.toLong))
   }
 
   private val defaultRead: JsValue => JsResult[BSONValue] =
@@ -669,8 +658,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
     array: PartialReads[BSONArray],
     doc: PartialReads[BSONDocument],
     undef: PartialReads[BSONUndefined.type],
-    decimal: PartialReads[BSONDecimal]
-  ): JsResult[BSONValue] =
+    decimal: PartialReads[BSONDecimal]): JsResult[BSONValue] =
     string.partialReads.
       orElse(objectID.partialReads).
       orElse(javascript.partialReads).
@@ -717,8 +705,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
     array: PartialWrites[BSONArray],
     doc: PartialWrites[BSONDocument],
     undef: PartialWrites[BSONUndefined.type],
-    decimal: PartialWrites[BSONDecimal]
-  ): JsValue = string.partialWrites.
+    decimal: PartialWrites[BSONDecimal]): JsValue = string.partialWrites.
     orElse(objectID.partialWrites).
     orElse(javascript.partialWrites).
     orElse(dateTime.partialWrites).
@@ -738,8 +725,7 @@ sealed trait BSONFormats extends LowerImplicitBSONHandlers {
     orElse(doc.partialWrites).
     orElse(undef.partialWrites).
     lift(bson).getOrElse(
-      throw new JSONException(s"Unhandled json value: $bson")
-    )
+      throw new JSONException(s"Unhandled json value: $bson"))
 }
 
 object Writers {
@@ -747,9 +733,9 @@ object Writers {
     def writemongo[A](implicit writer: Writes[A]): OWrites[A] =
       OWrites[A] { o =>
         val newPath = jp.path.flatMap {
-          case e: KeyPathNode     => Some(e.key)
+          case e: KeyPathNode => Some(e.key)
           case e: RecursiveSearch => Some(s"$$.${e.key}")
-          case e: IdxPathNode     => Some(s"${e.idx}")
+          case e: IdxPathNode => Some(s"${e.idx}")
         }.mkString(".")
 
         val orig = writer.writes(o)
@@ -801,7 +787,7 @@ sealed trait LowerImplicitBSONHandlers {
   implicit def jsWriter[A <: JsValue, B <: BSONValue] = BSONWriter[A, B] { js =>
     BSONFormats.toBSON(js) match {
       case JsSuccess(b: B @unchecked, _) => b
-      case res                           => sys.error(s"fails to convert to BSON: $res")
+      case res => sys.error(s"fails to convert to BSON: $res")
     }
   }
 

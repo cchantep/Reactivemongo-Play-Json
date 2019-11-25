@@ -57,11 +57,10 @@ object `package` {
  * using `Reads` and `Writes`.
  */
 final class JSONCollection(
-    val db: DB,
-    val name: String,
-    val failoverStrategy: FailoverStrategy,
-    override val readPreference: ReadPreference
-) extends GenericCollection[JSONSerializationPack.type]
+  val db: DB,
+  val name: String,
+  val failoverStrategy: FailoverStrategy,
+  override val readPreference: ReadPreference) extends GenericCollection[JSONSerializationPack.type]
   with CollectionMetaCommands {
 
   @deprecated("Use the constructor with a ReadPreference", "0.12-RC5")
@@ -103,8 +102,7 @@ class JsCursorImpl[T: Writes](val wrappee: Cursor[T])
 
   def jsArray(maxDocs: Int = Int.MaxValue)(implicit ec: ExecutionContext): Future[JsArray] = wrappee.foldWhile(Json.arr(), maxDocs)(
     (arr, res) => Cont(arr :+ writes.writes(res)),
-    (_, error) => Fail(error)
-  )
+    (_, error) => Fail(error))
 
 }
 
@@ -178,8 +176,7 @@ object Helpers {
       Json.parse(in).validate[List[JsObject]] match {
         case JsSuccess(os, _) => Future.successful(os)
         case err @ JsError(_) => Future.failed(new JSONException(
-          Json.stringify(JsError toJson err)
-        ))
+          Json.stringify(JsError toJson err)))
       }
     } catch {
       case reason: Exception => Future.failed(reason)
