@@ -20,9 +20,21 @@ object Common extends AutoPlugin {
   import Compiler.{ playLower, playUpper }
 
   override def projectSettings = Compiler.settings ++ Seq(
+    version := { 
+      val ver = (version in ThisBuild).value
+
+      sys.env.get("RELEASE_SUFFIX") match {
+        case Some(suffix) => ver.span(_ != '-') match {
+          case (a, b) => s"${a}-${suffix}${b}"
+        }
+
+        case _ => ver
+      }
+    },
     organization := "org.reactivemongo",
     resolvers ++= Seq(
       Resolver.sonatypeRepo("snapshots"),
+      Resolver.sonatypeRepo("staging"),
       Resolver.typesafeRepo("releases")),
     playVersion := {
       sys.env.get("PLAY_VERSION").getOrElse {
@@ -31,7 +43,7 @@ object Common extends AutoPlugin {
       }
     },
     playDir := {
-      if (playVersion.value startsWith "2.5") "play-upto2.5"
+      if (playVersion.value startsWith "2.5") "play-2.5-"
       else "play-2.6+"
     },
     unmanagedSourceDirectories in Compile += {

@@ -20,6 +20,24 @@ findbugsReportType := Some(FindbugsReport.PlainHtml)
 
 findbugsReportPath := Some(target.value / "findbugs.html")
 
+lazy val playJson = Def.setting {
+  "com.typesafe.play" %% "play-json" % playVersion.value
+}
+
+lazy val `play-json-compat` = project.in(file("compat")).
+  settings(Seq(
+    name := "reactivemongo-play-json-compat",
+    description := "Compatibility library between BSON/Play JSON",
+    mimaPreviousArtifacts := Set.empty[ModuleID], // TODO
+    libraryDependencies ++= {
+      val baseVer = (version in ThisBuild).value // w-o play qualifier
+
+      ("org.slf4j" % "slf4j-api" % "1.7.29" % Provided) +: Seq(
+        "org.reactivemongo" %% "reactivemongo-bson-api" % baseVer,
+        playJson.value).
+        map { _ % Provided cross CrossVersion.binary }
+    }))
+
 lazy val legacy = project.in(file("legacy")).
   settings(Seq(
     name := "reactivemongo-play-json",
@@ -28,9 +46,9 @@ lazy val legacy = project.in(file("legacy")).
       val baseVer = (version in ThisBuild).value // w-o play qualifier
 
       Seq(
+        playJson.value,
         "org.reactivemongo" %% "reactivemongo" % baseVer % Provided cross CrossVersion.binary,
-        "org.reactivemongo" %% "reactivemongo-bson-macros" % baseVer % Test,
-        "com.typesafe.play" %% "play-json" % playVersion.value % Provided cross CrossVersion.binary)
+        "org.reactivemongo" %% "reactivemongo-bson-macros" % baseVer % Test)
     },
     testOptions in Test += Tests.Cleanup(cl => {
       import scala.language.reflectiveCalls
@@ -39,6 +57,7 @@ lazy val legacy = project.in(file("legacy")).
       val m: M = c.getField("MODULE$").get(null).asInstanceOf[M]
       m.close()
     }),
+    scalacOptions += "-P:silencer:globalFilters=.*reactivemongo\\.play\\.json\\.compat.*;.*JSONException.*",
     mimaBinaryIssueFilters ++= {
       import com.typesafe.tools.mima.core._, ProblemFilters._
 
@@ -204,5 +223,7 @@ lazy val legacy = project.in(file("legacy")).
   ))
 
 lazy val root = (project in file(".")).
-  settings(Release.settings).
-  aggregate(legacy)
+  settings(Release.settings ++ Seq(
+    mimaPreviousArtifacts := Set.empty[ModuleID], // TODO
+  )).
+  aggregate(`play-json-compat`, legacy)
