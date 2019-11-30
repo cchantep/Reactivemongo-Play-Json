@@ -2,7 +2,7 @@ package reactivemongo.play.json
 
 /** Factory and extractor */
 object ValidationError {
-  import play.api.data.validation.{ ValidationError => VE }
+  import play.api.libs.json.{ JsonValidationError => VE }
 
   def apply(messages: Seq[String], args: Seq[Any]): VE =
     VE(messages, args: _*)
@@ -10,6 +10,6 @@ object ValidationError {
   def unapply(underlying: VE): Option[(Seq[String], Seq[Any])] =
     underlying match {
       case VE(messages, args @ _*) => Some(messages -> args)
-      case _                       => None
+      case _ => None
     }
 }

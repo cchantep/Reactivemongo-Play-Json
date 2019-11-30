@@ -23,8 +23,7 @@ class JsonSpec extends org.specs2.mutable.Specification {
   val pack = Package(
     Expeditor("Amazon"),
     List(Item("A Game of Thrones", "Book", 1)),
-    20
-  )
+    20)
 
   "ReactiveMongo" should {
     "convert an empty JSON and give an empty BSON doc" in {
@@ -69,8 +68,7 @@ class JsonSpec extends org.specs2.mutable.Specification {
     "convert a JSON doc containing an array and vice versa" in {
       val json = Json.obj(
         "name" -> JsString("jack"),
-        "contacts" -> Json.arr(Json.toJsFieldJsValueWrapper(Json.obj("email" -> "jack@jack.com")))
-      )
+        "contacts" -> Json.arr(Json.toJsFieldJsValueWrapper(Json.obj("email" -> "jack@jack.com"))))
       val bson = JsObjectWriter.write(json)
 
       json.toString must_=== JsObjectReader.read(bson).toString
@@ -103,8 +101,7 @@ class JsonSpec extends org.specs2.mutable.Specification {
       Json.toJson(Item("foo", "bar", 1)) must_=== Json.obj(
         "name" -> "foo",
         "description" -> "bar",
-        "occurrences" -> 1
-      )
+        "occurrences" -> 1)
     }
 
     "provides a Play JSON Writes for T : BSONWriter" in {
@@ -114,8 +111,7 @@ class JsonSpec extends org.specs2.mutable.Specification {
       Json.toJson(Item("foo", "bar", 1)) must_=== Json.obj(
         "name" -> "foo",
         "description" -> "bar",
-        "occurrences" -> 1
-      )
+        "occurrences" -> 1)
     }
 
     "provides a Play JSON Reads for T : BSONWriter" in {
@@ -125,8 +121,7 @@ class JsonSpec extends org.specs2.mutable.Specification {
       Json.obj(
         "name" -> "foo",
         "description" -> "bar",
-        "occurrences" -> 1
-      ).validate[Item] must beLike[JsResult[Item]] {
+        "occurrences" -> 1).validate[Item] must beLike[JsResult[Item]] {
           case JsSuccess(item, _) => item must_== Item("foo", "bar", 1)
         }
     }
@@ -160,7 +155,6 @@ class JsonSpec extends org.specs2.mutable.Specification {
 case class Expeditor(name: String)
 case class Item(name: String, description: String, occurrences: Int)
 case class Package(
-    expeditor: Expeditor,
-    items: List[Item],
-    price: Float
-)
+  expeditor: Expeditor,
+  items: List[Item],
+  price: Float)

@@ -51,10 +51,9 @@ trait JSONCommandError extends CommandError {
 @SuppressWarnings(Array(
   "FinalModifierOnCaseClass", "IncorrectlyNamedExceptions"))
 case class DefaultJSONCommandError(
-    code: Option[Int],
-    errmsg: Option[String],
-    originalDocument: JsObject
-) extends JSONCommandError {
+  code: Option[Int],
+  errmsg: Option[String],
+  originalDocument: JsObject) extends JSONCommandError {
   override def getMessage = s"CommandError[code=${code.getOrElse("<unknown>")}, errmsg=${errmsg.getOrElse("<unknown>")}, doc: ${originalDocument}]"
 }
 
@@ -83,8 +82,7 @@ private[commands] trait DealingWithGenericCommandErrorsReader[A]
       if (!(doc \ "ok").asOpt[JsNumber].exists(_.value.toInt == 1)) {
         val cause = ValidationError(
           messages = "errmsg" +: (doc \ "errmsg").asOpt[String].toSeq,
-          args = doc +: (doc \ "code").asOpt[Int].toSeq
-        )
+          args = doc +: (doc \ "code").asOpt[Int].toSeq)
 
         JsError(cause)
       } else JsSuccess(readResult(doc))

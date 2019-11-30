@@ -24,12 +24,11 @@ object BSONFormatsSpec extends org.specs2.mutable.Specification {
 
     "should convert special ObjectID notation only if there is only one field named $oid of type String" in {
       val joid = Json.obj(
-        f"$$oid" -> "5150806842b329bae81de713", "truc" -> "plop"
-      )
+        f"$$oid" -> "5150806842b329bae81de713", "truc" -> "plop")
 
       Json.fromJson[BSONObjectID](joid) match {
         case JsError(_) => success
-        case s          => failure(s"should not be a JsSuccess $s")
+        case s => failure(s"should not be a JsSuccess $s")
       }
     }
 
@@ -116,45 +115,38 @@ object BSONFormatsSpec extends org.specs2.mutable.Specification {
       val bsonTs = BSONTimestamp(6065270725701271558L)
       val legacyJson = Json.obj(f"$$i" -> 6, f"$$time" -> 1412180887L)
       val strictJson = Json.obj(f"$$timestamp" -> Json.obj(
-        "i" -> 6, "t" -> 1412180887L
-      ))
+        "i" -> 6, "t" -> 1412180887L))
       val expectedJson = legacyJson ++ strictJson
 
       toJSON(bsonTs) must_=== expectedJson and (
-        Json.toJson(bsonTs) must_=== expectedJson
-      ) and (
+        Json.toJson(bsonTs) must_=== expectedJson) and (
           Json.fromJson[BSONTimestamp](legacyJson) must beLike[JsResult[_]] {
             case JsSuccess(ts, _) => ts must_== bsonTs
-          }
-        ) and (
+          }) and (
             Json.fromJson[BSONTimestamp](strictJson) must beLike[JsResult[_]] {
               case JsSuccess(ts, _) => ts must_== bsonTs
-            }
-          )
+            })
     }
 
     "handle BSONUndefined" in {
       val expectedJson = Json.obj(f"$$undefined" -> true)
 
       toJSON(BSONUndefined) must_=== expectedJson and (
-        Json.toJson(BSONUndefined) must_=== expectedJson
-      )
+        Json.toJson(BSONUndefined) must_=== expectedJson)
     }
 
     "handle BSONMinKey" in {
       val expectedJson = Json.obj(f"$$minKey" -> 1)
 
       toJSON(BSONMinKey) must_=== expectedJson and (
-        Json.toJson(BSONMinKey) must_=== expectedJson
-      )
+        Json.toJson(BSONMinKey) must_=== expectedJson)
     }
 
     "handle BSONMaxKey" in {
       val expectedJson = Json.obj(f"$$maxKey" -> 1)
 
       toJSON(BSONMaxKey) must_=== expectedJson and (
-        Json.toJson(BSONMaxKey) must_=== expectedJson
-      )
+        Json.toJson(BSONMaxKey) must_=== expectedJson)
     }
 
     "handle BSONDateTime from strict extended syntax" in {
@@ -212,10 +204,8 @@ object BSONFormatsSpec extends org.specs2.mutable.Specification {
         "age" -> 4,
         "name" -> "Jack",
         "_id" -> (Json.obj(
-          f"$$oid" -> "5150806842b329bae81de713"
-        ): Json.JsValueWrapper),
-        "nested" -> Json.arr("plop", 6, Json.obj("toto" -> "titi"))
-      )
+          f"$$oid" -> "5150806842b329bae81de713"): Json.JsValueWrapper),
+        "nested" -> Json.arr("plop", 6, Json.obj("toto" -> "titi")))
       val doc = Json.fromJson[BSONDocument](json)
 
       Json.toJson(doc.get) must_=== json
@@ -240,7 +230,7 @@ object BSONFormatsSpec extends org.specs2.mutable.Specification {
       val jsymbol = Json.obj(f"$$symbol" -> "sym", "truc" -> "plop")
       Json.fromJson[BSONSymbol](jsymbol) match {
         case JsError(_) => success
-        case s          => failure(s"not be a JsSuccess $s")
+        case s => failure(s"not be a JsSuccess $s")
       }
     }
 
