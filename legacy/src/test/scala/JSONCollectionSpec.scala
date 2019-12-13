@@ -42,7 +42,7 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
   lazy val collectionName = s"test_users_${System identityHashCode this}"
   lazy val bsonCollection = db(collectionName)
   lazy val collection = new JSONCollection(
-    db, collectionName, new FailoverStrategy(), db.defaultReadPreference)
+    db, collectionName, new FailoverStrategy(), ReadPreference.primary)
 
   "JSONCollection.save" should {
     "add object if there does not exist in database" in {
@@ -175,8 +175,8 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
     section("mongo2")
     "for MongoDB 2.6" >> {
       "write an JsObject with mongo query only if there are not options defined" in {
-        val builder = tests.queryBuilder(collection).
-          filter(Json.obj("username" -> "John Doe"))
+        val builder = collection.find(
+          Json.obj("username" -> "John Doe"), Option.empty[JsObject])
 
         val expected = Json.parse("""{"$query":{"username":"John Doe"},"$readPreference":{"mode":"primary"}}""")
 
@@ -185,8 +185,8 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
       }
 
       "write an JsObject with only defined options" >> {
-        val builder1 = tests.queryBuilder(collection).
-          filter(Json.obj("username" -> "John Doe")).
+        val builder1 = collection.find(
+          Json.obj("username" -> "John Doe"), Option.empty[JsObject]).
           sort(Json.obj("age" -> 1))
 
         "with query builder #1" in {
@@ -211,8 +211,8 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
     section("gt_mongo32")
     "for MongoDB >3.2" >> {
       "write an JsObject with mongo query only if there are not options defined" in {
-        val builder = tests.queryBuilder(collection).
-          filter(Json.obj("username" -> "John Doe"))
+        val builder = collection.find(
+          Json.obj("username" -> "John Doe"), Option.empty[JsObject])
 
         val expected = Json.parse(s"""{"find":"${collection.name}","skip":0,"tailable":false,"awaitData":false,"oplogReplay":false,"filter":{"username":"John Doe"},"readConcern":{"level":"local"},"$$readPreference":{"mode":"primary"}}""")
 
@@ -221,8 +221,8 @@ final class JSONCollectionSpec(implicit ee: ExecutionEnv)
       }
 
       "write an JsObject with only defined options" >> {
-        val builder1 = tests.queryBuilder(collection).
-          filter(Json.obj("username" -> "John Doe")).
+        val builder1 = collection.find(
+          Json.obj("username" -> "John Doe"), Option.empty[JsObject]).
           sort(Json.obj("age" -> 1))
 
         "with query builder #1" in {

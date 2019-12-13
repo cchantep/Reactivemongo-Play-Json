@@ -48,6 +48,7 @@ object `package` {
   implicit object JSONCollectionProducer extends GenericCollectionProducer[JSONSerializationPack.type, JSONCollection] {
     private[reactivemongo] val pack = JSONSerializationPack
 
+    @silent(".*defaultReadPreference.*")
     def apply(db: DB, name: String, failoverStrategy: FailoverStrategy) = new JSONCollection(db, name, failoverStrategy, db.defaultReadPreference)
   }
 }
