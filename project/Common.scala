@@ -19,16 +19,39 @@ object Common extends AutoPlugin {
   val playDirs = settingKey[Seq[String]]("Play source directory")
   import Compiler.{ playLower, playUpper }
 
+  val useShaded = settingKey[Boolean](
+    "Use ReactiveMongo-Shaded (see system property 'reactivemongo.shaded')")
+
+  val driverVersion = settingKey[String]("Version of the driver dependency")
+
   override def projectSettings = Compiler.settings ++ Seq(
+    useShaded := sys.env.get("REACTIVEMONGO_SHADED").fold(true)(_.toBoolean),
+    driverVersion := {
+      val v = (version in ThisBuild).value
+      val suffix = {
+        if (useShaded.value) "" // default ~> no suffix
+        else "-noshaded"
+      }
+
+      v.span(_ != '-') match {
+        case (a, b) => s"${a}${suffix}${b}"
+      }
+    },
     version := { 
       val ver = (version in ThisBuild).value
+      val extraSuffix = {
+        if (useShaded.value) "" // default ~> no suffix
+        else "-noshaded"
+      }
 
       sys.env.get("RELEASE_SUFFIX") match {
         case Some(suffix) => ver.span(_ != '-') match {
-          case (a, b) => s"${a}-${suffix}${b}"
+          case (a, b) => s"${a}-${suffix}${extraSuffix}${b}"
         }
 
-        case _ => ver
+        case _ => ver.span(_ != '-') match {
+          case (a, b) => s"${a}${extraSuffix}${b}"
+        }
       }
     },
     organization := "org.reactivemongo",
