@@ -1,14 +1,4 @@
-import Common.playVersion
-
-version ~= { ver =>
-  sys.env.get("RELEASE_SUFFIX") match {
-    case Some(suffix) => ver.span(_ != '-') match {
-      case (a, b) => s"${a}-${suffix}${b}"
-    }
-
-    case _ => ver
-  }
-}
+import Common.{ playVersion, driverVersion }
 
 // FindBugs
 findbugsExcludeFilters := Some(
@@ -33,7 +23,7 @@ lazy val `play-json-compat` = project.in(file("compat")).
       val baseVer = (version in ThisBuild).value // w-o play qualifier
 
       ("org.slf4j" % "slf4j-api" % "1.7.30" % Provided) +: Seq(
-        "org.reactivemongo" %% "reactivemongo-bson-api" % baseVer,
+        "org.reactivemongo" %% "reactivemongo-bson-api" % driverVersion.value,
         playJson.value).
         map { _ % Provided cross CrossVersion.binary }
     }))
@@ -43,12 +33,18 @@ lazy val legacy = project.in(file("legacy")).
     name := "reactivemongo-play-json",
     fork in Test := false,
     libraryDependencies ++= {
-      val baseVer = (version in ThisBuild).value // w-o play qualifier
+      val baseVer = driverVersion.value
 
-      Seq(
+      val baseDeps = Seq(
         playJson.value,
         "org.reactivemongo" %% "reactivemongo" % baseVer % Provided cross CrossVersion.binary,
         "org.reactivemongo" %% "reactivemongo-bson-macros" % baseVer % Test)
+
+      if (Common.useShaded.value) {
+        baseDeps
+      } else {
+        ("io.netty" % "netty-handler" % "4.1.43.Final" % Provided) +: baseDeps
+      }
     },
     testOptions in Test += Tests.Cleanup(cl => {
       import scala.language.reflectiveCalls

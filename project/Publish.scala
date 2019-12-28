@@ -30,6 +30,11 @@ object Publish {
             <name>Stephane Godbillon</name>
             <url>http://stephane.godbillon.com</url>
           </developer>
+          <developer>
+            <id>cchantep</id>
+            <name>Cedric Chantepie</name>
+            <url>github.com/cchantep/</url>
+          </developer>
         </developers>))
   }
 
