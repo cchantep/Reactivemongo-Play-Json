@@ -8,7 +8,7 @@ import reactivemongo.api.{ Cursor, ReadConcern }
 
 import reactivemongo.play.json._, collection._
 
-class AggregationSpec(implicit ee: ExecutionEnv)
+final class AggregationSpec(implicit ee: ExecutionEnv)
   extends org.specs2.mutable.Specification {
 
   "Aggregation framework" title

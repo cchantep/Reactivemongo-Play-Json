@@ -15,7 +15,7 @@ import play.api.libs.json.{
 import reactivemongo.bson._
 import reactivemongo.play.json._
 
-class JsonSpec extends org.specs2.mutable.Specification {
+final class JsonSpec extends org.specs2.mutable.Specification {
   "JSON" title
 
   sequential

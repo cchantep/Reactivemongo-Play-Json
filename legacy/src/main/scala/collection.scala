@@ -57,6 +57,7 @@ object `package` {
  * A Collection that interacts with the Play JSON library,
  * using `Reads` and `Writes`.
  */
+@silent(".*CollectionMetaCommands\\ in\\ package\\ api.*")
 final class JSONCollection(
   val db: DB,
   val name: String,
@@ -164,6 +165,7 @@ object Helpers {
    * @param ordered true if to insert the document in order
    * @param wc the write concern
    */
+  @silent(".*MultiWriteResult.*")
   def bulkInsert(collection: JSONCollection, documents: => InputStream, ordered: Boolean = true)(implicit ec: ExecutionContext, @silent wc: WriteConcern = collection.db.connection.options.writeConcern): Future[MultiBulkWriteResult] =
     documentProducer(collection, documents).flatMap { producer =>
       collection.insert(ordered, wc).many(producer.map(_.produce))
