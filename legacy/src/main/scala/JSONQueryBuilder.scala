@@ -2,7 +2,7 @@ package reactivemongo.play.json.collection
 
 import play.api.libs.json.JsObject
 
-import reactivemongo.api.{ Collection, FailoverStrategy, QueryOpts }
+import reactivemongo.api.{ Collection, FailoverStrategy, JSONLegacy, QueryOpts }
 import reactivemongo.api.collections.GenericQueryBuilder
 
 import reactivemongo.play.json.JSONSerializationPack
@@ -11,7 +11,7 @@ import reactivemongo.play.json.JSONSerializationPack
 @SuppressWarnings(Array("FinalModifierOnCaseClass"))
 @deprecated("Useless, will be remove", "0.16.0")
 case class JSONQueryBuilder(
-  @transient collection: Collection,
+  @transient override val collection: Collection,
   failoverStrategy: FailoverStrategy,
   queryOption: Option[JsObject] = None,
   sortOption: Option[JsObject] = None,
@@ -25,6 +25,8 @@ case class JSONQueryBuilder(
   type Self = JSONQueryBuilder
 
   @transient val pack = JSONSerializationPack
+
+  protected lazy val version = JSONLegacy.metadata(collection.db).maxWireVersion
 
   @deprecated("Use `failoverStrategy`", "0.16.0")
   def failover = failoverStrategy
