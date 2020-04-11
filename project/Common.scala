@@ -27,7 +27,7 @@ object Common extends AutoPlugin {
   override def projectSettings = Compiler.settings ++ Seq(
     useShaded := sys.env.get("REACTIVEMONGO_SHADED").fold(true)(_.toBoolean),
     driverVersion := {
-      val v = (version in ThisBuild).value
+      val v = "0.20.3" // TODO: (version in ThisBuild).value
       val suffix = {
         if (useShaded.value) "" // default ~> no suffix
         else "-noshaded"
@@ -44,7 +44,7 @@ object Common extends AutoPlugin {
             s"${major}-${suffix}"
 
           case vs @ _ =>
-            ((vs.init :+ "play27") ++ vs.lastOption.toList).mkString("-")
+            ((vs.init :+ suffix) ++ vs.lastOption.toList).mkString("-")
         }
 
         case _ => ver
