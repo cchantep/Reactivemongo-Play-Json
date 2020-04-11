@@ -92,7 +92,7 @@ commands:
                       sbt +publish
                     else
                       for V in `echo "<< parameters.scala_versions >>"`; do
-                        sbt ++V publish
+                        sbt ++$V publish
                       done
                     fi
 
