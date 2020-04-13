@@ -232,7 +232,7 @@ private[json] sealed trait LowPriorityHandlerConverters3 {
     }
 
   /**
-   * Provided there is a [[BSONWriter]], resolves a JSON one.
+   * Provided there is a BSON writer, resolves a JSON one.
    *
    *
    * {{{
