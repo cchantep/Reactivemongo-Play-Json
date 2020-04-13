@@ -18,6 +18,6 @@ TEST_OPTS="exclude mongo2"
 
 TEST_CMD=";error ;test:compile ;mimaReportBinaryIssues"
 # TODO: scapegoat
-TEST_CMD="$TEST_CMD ;info ;testQuick * -- $TEST_OPTS"
+TEST_CMD="$TEST_CMD ;project play-json-compat ;info ;testQuick * -- $TEST_OPTS"
 
 sbt ++$SCALA_VERSION "$TEST_CMD"
