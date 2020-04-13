@@ -133,7 +133,7 @@ jobs:
       REACTIVEMONGO_SHADED: false
       RELEASE_SUFFIX: play26
       PLAY_VERSION: 2.6.7
-      SCALA_VERSION: 2.12.10
+      SCALA_VERSION: 2.12.11
     
     steps:
       - checkout
@@ -193,6 +193,10 @@ jobs:
       - checkout
       - setup_sbt
 
+      - restore_cache:
+          keys:
+          - scala-{{ .Environment.CIRCLE_JOB }}-{{ .Environment.REACTIVEMONGO_SHADED }}-{{ checksum "build.sbt" }}-{{ checksum "project/Common.scala" }}
+
       - publish_snapshots:
           release_suffix: play25
           play_version: 2.5.7
@@ -201,17 +205,24 @@ jobs:
       - publish_snapshots:
           release_suffix: play26
           play_version: 2.6.7
-          scala_versions: 2.11.12 2.12.10
+          scala_versions: 2.11.12 2.12.11
 
       - publish_snapshots:
           release_suffix: play27
           play_version: 2.7.4
-          scala_versions: 2.11.12 2.12.10 2.13.1
+          scala_versions: 2.11.12 2.12.11 2.13.1
 
       - publish_snapshots:
           release_suffix: play28
           play_version: 2.8.1
-          scala_versions: 2.12.10 2.13.1
+          scala_versions: 2.12.11 2.13.1
+
+      - save_cache:
+          paths:
+            - ~/.ivy2
+            - ~/.coursier/cache
+            - ~/.sbt
+          key: scala-{{ .Environment.CIRCLE_JOB }}-{{ .Environment.REACTIVEMONGO_SHADED }}-{{ checksum "build.sbt" }}-{{ checksum "project/Common.scala" }}
 
   trigger_dependent_builds:
     docker:
