@@ -17,6 +17,14 @@ object Compiler {
         case _                       => base / "scala-2.13-"
       }
     },
+    unmanagedSourceDirectories in Test += {
+      val base = (sourceDirectory in Test).value
+
+      CrossVersion.partialVersion(scalaVersion.value) match {
+        case Some((2, n)) if n >= 13 => base / "scala-2.13+"
+        case _                       => base / "scala-2.13-"
+      }
+    },
     scalacOptions ++= Seq(
       "-encoding", "UTF-8", "-target:jvm-1.8",
       "-unchecked",
@@ -29,16 +37,17 @@ object Compiler {
       "-Ywarn-value-discard",
       "-g:vars"
     ),
-    scalacOptions in Compile ++= {
-      if (scalaVersion.value.startsWith("2.13.")) Nil
+    scalacOptions ++= {
+      if (scalaBinaryVersion.value == "2.13") Nil
       else Seq(
+        "-Xmax-classfile-name", "128",
         "-Ywarn-infer-any",
         "-Ywarn-unused",
         "-Ywarn-unused-import"
       )
     },
     scalacOptions in Compile ++= {
-      if (!scalaVersion.value.startsWith("2.11.")) Nil
+      if (scalaVersion.value != "2.11") Nil
       else Seq(
         "-Yconst-opt",
         "-Yclosure-elim",

@@ -23,10 +23,12 @@ lazy val `play-json-compat` = project.in(file("compat")).
       val baseVer = (version in ThisBuild).value // w-o play qualifier
 
       ("org.slf4j" % "slf4j-api" % "1.7.30" % Provided) +: Seq(
-        "org.reactivemongo" %% "reactivemongo-bson-api" % driverVersion.value,
+        "org.reactivemongo" %% "reactivemongo-bson-api" % driverVersion.value changing(),
         playJson.value).
         map { _ % Provided cross CrossVersion.binary }
-    }))
+    },
+    libraryDependencies ++= Seq(
+      "org.specs2" %% "specs2-matcher-extra" % "4.9.3" % Test)))
 
 lazy val legacy = project.in(file("legacy")).
   settings(Seq(
