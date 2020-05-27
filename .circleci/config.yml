@@ -179,7 +179,7 @@ jobs:
 
       - publish_snapshots:
           release_suffix: play29
-          play_version: 2.9.°
+          play_version: 2.9.0
           scala_versions: 2.12.11 2.13.2
 
       - save_cache:
