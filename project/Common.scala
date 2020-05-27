@@ -47,7 +47,7 @@ object Common extends AutoPlugin {
             s"${major}-${suffix}"
 
           case vs @ _ =>
-            ((vs.init :+ "play27") ++ vs.lastOption.toList).mkString("-")
+            ((vs.init :+ suffix) ++ vs.lastOption.toList).mkString("-")
         }
 
         case _ => ver

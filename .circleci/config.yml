@@ -93,7 +93,7 @@ commands:
                     export RELEASE_SUFFIX="<< parameters.release_suffix >>"
                     export PLAY_VERSION="<< parameters.play_version >>"
                     
-                    echo "Publishing artifacts for $PLAY_VERSION"
+                    echo "Publishing artifacts $RELEASE_SUFFIX for $PLAY_VERSION"
                     
                     if [ "x<< parameters.scala_versions >>" = "x" ]; then
                       sbt +publish
