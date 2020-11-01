@@ -17,7 +17,7 @@ object Common extends AutoPlugin {
     val v = scalaBinaryVersion.value
 
     if (v == "2.11") "1.4.4"
-    else "1.6.0"
+    else "1.7.1"
   }
 
   val playVersion = settingKey[String]("Play version")
